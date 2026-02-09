@@ -1,0 +1,533 @@
+# HappyKimi Transition - Progress Tracking
+
+> **Last Updated**: Not yet started
+
+---
+
+## 📋 How to Use This Progress File
+
+### For Agents Implementing Modules
+
+1. **Before you start**: Find your assigned module below and update:
+   - `Status` → `in_progress`
+   - `Agent` → Your identifier
+   - `Started` → Current timestamp (ISO format)
+
+2. **While working**: Update the `Progress Notes` section with brief bullet points of what you've completed.
+
+3. **When facing challenges**: Add entries to `Challenges & Solutions` using the template format.
+
+4. **When complete**: Update:
+   - `Status` → `completed`
+   - `Completed` → Current timestamp
+   - Ensure all files created/modified are listed
+
+### Status Values
+
+| Status | Meaning |
+|--------|---------|
+| `pending` | Not yet started, waiting for dependencies |
+| `in_progress` | Actively being worked on |
+| `blocked` | Cannot proceed due to dependency or issue |
+| `completed` | All tasks done, verified, tested |
+| `skipped` | Intentionally skipped (document reason) |
+
+### Challenge & Solution Format
+
+```markdown
+**Challenge**: Brief description of the problem encountered
+- **Context**: (optional) Additional context
+- **Solution**: How you solved it (or workaround used)
+- **Time Lost**: Estimate (e.g., 15 min, 2 hrs) - helps with retrospective
+```
+
+### Quick Links
+
+- [PRD](./PRD.md) - Full requirements
+- [Module Dependency Graph](#module-dependencies) - See below
+
+---
+
+## 📊 Overall Progress Summary
+
+```
+Phase 1 (CLI)   : [          ] 0/8 modules
+Phase 2 (Mobile): [          ] 0/7 modules
+Total           : [          ] 0/15 modules
+```
+
+| Phase | Modules | Completed | Status |
+|-------|---------|-----------|--------|
+| CLI Core | 0-8 | 0/9 | 🔴 Not started |
+| Mobile App | 9-13 | 0/5 | 🔴 Not started |
+| Integration | 14 | 0/1 | 🔴 Not started |
+| Documentation | 15 | 0/1 | 🔴 Not started |
+
+---
+
+## 🔧 Module Progress Details
+
+### Module 0: Environment Setup & Dependencies
+
+| Field | Value |
+|-------|-------|
+| **Status** | `pending` |
+| **Agent** | *unassigned* |
+| **Started** | - |
+| **Completed** | - |
+| **Parallelizable** | Yes |
+| **Dependencies** | None |
+
+**Files Modified**:
+- *none yet*
+
+**Progress Notes**:
+- [ ] Verify Kimi CLI installation and version
+- [ ] Install happy-cli development dependencies
+- [ ] Build happy-cli to ensure base version works
+- [ ] Verify relay server is running
+
+**Challenges & Solutions**:
+<!-- Add challenges here as needed -->
+
+---
+
+### Module 1: Core Types & Constants (CLI)
+
+| Field | Value |
+|-------|-------|
+| **Status** | `pending` |
+| **Agent** | *unassigned* |
+| **Started** | - |
+| **Completed** | - |
+| **Parallelizable** | Yes |
+| **Dependencies** | Module 0 (optional) |
+
+**Files Created**:
+- `packages/happy-cli/src/kimi/constants.ts`
+- `packages/happy-cli/src/kimi/types.ts`
+
+**Progress Notes**:
+- [ ] Create constants.ts with env vars and defaults
+- [ ] Create types.ts with KimiMode, KimiMessagePayload, KimiSessionConfig
+
+**Challenges & Solutions**:
+<!-- Add challenges here as needed -->
+
+---
+
+### Module 2: Transport Handler (CLI)
+
+| Field | Value |
+|-------|-------|
+| **Status** | `pending` |
+| **Agent** | *unassigned* |
+| **Started** | - |
+| **Completed** | - |
+| **Parallelizable** | Yes |
+| **Dependencies** | Module 1 |
+
+**Files Created**:
+- `packages/happy-cli/src/agent/transport/handlers/KimiTransport.ts`
+
+**Progress Notes**:
+- [ ] Implement KimiTransport class with timeouts
+- [ ] Add filterStdoutLine for JSON filtering
+- [ ] Define tool patterns (change_title, think)
+
+**Challenges & Solutions**:
+<!-- Add challenges here as needed -->
+
+---
+
+### Module 3: Utility Classes (CLI)
+
+| Field | Value |
+|-------|-------|
+| **Status** | `pending` |
+| **Agent** | *unassigned* |
+| **Started** | - |
+| **Completed** | - |
+| **Parallelizable** | Yes |
+| **Dependencies** | Module 1 |
+
+**Files Created**:
+- `packages/happy-cli/src/kimi/utils/config.ts`
+- `packages/happy-cli/src/kimi/utils/permissionHandler.ts`
+- `packages/happy-cli/src/kimi/utils/reasoningProcessor.ts`
+- `packages/happy-cli/src/kimi/utils/diffProcessor.ts`
+
+**Progress Notes**:
+- [ ] config.ts - Read/save Kimi config from ~/.kimi/config.toml
+- [ ] permissionHandler.ts - KimiPermissionHandler class
+- [ ] reasoningProcessor.ts - KimiReasoningProcessor class
+- [ ] diffProcessor.ts - KimiDiffProcessor class
+
+**Challenges & Solutions**:
+<!-- Add challenges here as needed -->
+
+---
+
+### Module 4: Backend Factory (CLI)
+
+| Field | Value |
+|-------|-------|
+| **Status** | `pending` |
+| **Agent** | *unassigned* |
+| **Started** | - |
+| **Completed** | - |
+| **Parallelizable** | No |
+| **Dependencies** | Modules 1, 2, 3 |
+
+**Files Created**:
+- `packages/happy-cli/src/agent/factories/kimi.ts`
+
+**Progress Notes**:
+- [ ] Create createKimiBackend() function
+- [ ] Integrate with AcpBackend
+- [ ] Handle model resolution and env vars
+
+**Challenges & Solutions**:
+<!-- Add challenges here as needed -->
+
+---
+
+### Module 5: Ink UI Component (CLI)
+
+| Field | Value |
+|-------|-------|
+| **Status** | `pending` |
+| **Agent** | *unassigned* |
+| **Started** | - |
+| **Completed** | - |
+| **Parallelizable** | Yes |
+| **Dependencies** | Module 1 |
+
+**Files Created**:
+- `packages/happy-cli/src/ui/ink/KimiDisplay.tsx`
+
+**Progress Notes**:
+- [ ] Create React component for terminal UI
+- [ ] Display status, messages, model info
+- [ ] Handle Ctrl+C for exit
+
+**Challenges & Solutions**:
+<!-- Add challenges here as needed -->
+
+---
+
+### Module 6: Main Entry Point - runKimi.ts (CLI)
+
+| Field | Value |
+|-------|-------|
+| **Status** | `pending` |
+| **Agent** | *unassigned* |
+| **Started** | - |
+| **Completed** | - |
+| **Parallelizable** | No |
+| **Dependencies** | Modules 1-5 |
+
+**Files Created**:
+- `packages/happy-cli/src/kimi/runKimi.ts`
+
+**Progress Notes**:
+- [ ] Session setup and authentication (~1300 lines)
+- [ ] Machine ID retrieval
+- [ ] Session creation with metadata
+- [ ] Message queue with mode handling
+- [ ] Happy MCP server startup
+- [ ] Backend creation with createKimiBackend()
+- [ ] Message handler for AgentMessage types
+- [ ] Main processing loop
+- [ ] Cleanup on exit
+
+**Challenges & Solutions**:
+<!-- Add challenges here as needed -->
+
+---
+
+### Module 7: CLI Integration (CLI)
+
+| Field | Value |
+|-------|-------|
+| **Status** | `pending` |
+| **Agent** | *unassigned* |
+| **Started** | - |
+| **Completed** | - |
+| **Parallelizable** | No |
+| **Dependencies** | Module 6 |
+
+**Files Modified**:
+- `packages/happy-cli/src/index.ts` - Add kimi subcommand
+- `packages/happy-cli/src/agent/core/AgentBackend.ts` - Add 'kimi' to AgentId
+- `packages/happy-cli/src/agent/transport/handlers/index.ts` - Export kimiTransport
+- `packages/happy-cli/src/agent/factories/index.ts` - Export createKimiBackend
+
+**Progress Notes**:
+- [ ] Add kimi subcommand block in index.ts
+- [ ] Add 'kimi' to AgentId type
+- [ ] Update export index files
+
+**Challenges & Solutions**:
+<!-- Add challenges here as needed -->
+
+---
+
+### Module 8: CLI Tests
+
+| Field | Value |
+|-------|-------|
+| **Status** | `pending` |
+| **Agent** | *unassigned* |
+| **Started** | - |
+| **Completed** | - |
+| **Parallelizable** | Yes |
+| **Dependencies** | Modules 1-7 |
+
+**Files Created**:
+- `packages/happy-cli/src/kimi/utils/__tests__/config.test.ts`
+- `packages/happy-cli/src/kimi/utils/__tests__/permissionHandler.test.ts`
+- `packages/happy-cli/src/kimi/__tests__/emitReadyIfIdle.test.ts`
+- `packages/happy-cli/src/agent/transport/handlers/__tests__/KimiTransport.test.ts`
+- `packages/happy-cli/src/kimi/__tests__/runKimi.integration.test.ts`
+
+**Progress Notes**:
+- [ ] Unit tests for config utilities
+- [ ] Unit tests for permission handler
+- [ ] Unit tests for emitReadyIfIdle
+- [ ] Unit tests for KimiTransport
+- [ ] Integration tests for runKimi
+
+**Challenges & Solutions**:
+<!-- Add challenges here as needed -->
+
+---
+
+### Module 9: Mobile App Type Updates
+
+| Field | Value |
+|-------|-------|
+| **Status** | `pending` |
+| **Agent** | *unassigned* |
+| **Started** | - |
+| **Completed** | - |
+| **Parallelizable** | Yes |
+| **Dependencies** | None |
+
+**Files Modified**:
+- `packages/happy-app/sources/sync/settings.ts`
+- `packages/happy-app/sources/hooks/useCLIDetection.ts`
+
+**Progress Notes**:
+- [ ] Add kimi to ProfileCompatibilitySchema
+- [ ] Add kimi to CLI availability interface
+
+**Challenges & Solutions**:
+<!-- Add challenges here as needed -->
+
+---
+
+### Module 10: Mobile App Agent Selector
+
+| Field | Value |
+|-------|-------|
+| **Status** | `pending` |
+| **Agent** | *unassigned* |
+| **Started** | - |
+| **Completed** | - |
+| **Parallelizable** | No |
+| **Dependencies** | Module 9 |
+
+**Files Modified**:
+- `packages/happy-app/sources/app/(app)/new/index.tsx`
+- `packages/happy-app/sources/components/AgentInput.tsx`
+- `packages/happy-app/sources/sync/profileUtils.ts`
+
+**Progress Notes**:
+- [ ] Add 'kimi' to agent type options in new/index.tsx
+- [ ] Update AgentInput component with Kimi icon/branding
+- [ ] Update DEFAULT_PROFILES for Kimi compatibility
+
+**Challenges & Solutions**:
+<!-- Add challenges here as needed -->
+
+---
+
+### Module 11: Mobile App Translations
+
+| Field | Value |
+|-------|-------|
+| **Status** | `pending` |
+| **Agent** | *unassigned* |
+| **Started** | - |
+| **Completed** | - |
+| **Parallelizable** | Yes (split across 9 agents possible) |
+| **Dependencies** | None |
+
+**Files Modified**:
+- `packages/happy-app/sources/text/translations/en.ts`
+- `packages/happy-app/sources/text/translations/ru.ts`
+- `packages/happy-app/sources/text/translations/pl.ts`
+- `packages/happy-app/sources/text/translations/es.ts`
+- `packages/happy-app/sources/text/translations/ca.ts`
+- `packages/happy-app/sources/text/translations/it.ts`
+- `packages/happy-app/sources/text/translations/pt.ts`
+- `packages/happy-app/sources/text/translations/ja.ts`
+- `packages/happy-app/sources/text/translations/zh-Hans.ts`
+
+**Progress Notes**:
+- [ ] Add kimi, kimiDescription, kimiNotDetected strings to each file
+
+**Challenges & Solutions**:
+<!-- Add challenges here as needed -->
+
+---
+
+### Module 12: Mobile App Tests
+
+| Field | Value |
+|-------|-------|
+| **Status** | `pending` |
+| **Agent** | *unassigned* |
+| **Started** | - |
+| **Completed** | - |
+| **Parallelizable** | Yes |
+| **Dependencies** | Modules 9-11 |
+
+**Files Created**:
+- `packages/happy-app/sources/__tests__/kimi/AgentSelector.test.tsx`
+- `packages/happy-app/sources/__tests__/kimi/ProfileCompatibility.test.ts`
+- `packages/happy-app/sources/__tests__/kimi/SessionSpawn.test.tsx`
+
+**Progress Notes**:
+- [ ] AgentSelector tests with mocked hooks
+- [ ] Profile compatibility tests
+- [ ] Session spawn tests with mocked machineSpawnNewSession
+
+**Challenges & Solutions**:
+<!-- Add challenges here as needed -->
+
+---
+
+### Module 13: APK Build Configuration
+
+| Field | Value |
+|-------|-------|
+| **Status** | `pending` |
+| **Agent** | *unassigned* |
+| **Started** | - |
+| **Completed** | - |
+| **Parallelizable** | No |
+| **Dependencies** | Modules 9-12 |
+
+**Prerequisites**:
+- Android SDK installed
+- ANDROID_HOME environment variable set
+- Java JDK 17+ installed
+
+**Progress Notes**:
+- [ ] Run `yarn prebuild` to generate android/ folder
+- [ ] Build debug APK with `yarn android:dev`
+- [ ] Build release APK with gradlew
+- [ ] Install on connected device via adb
+
+**Challenges & Solutions**:
+<!-- Add challenges here as needed -->
+
+---
+
+### Module 14: Integration Testing
+
+| Field | Value |
+|-------|-------|
+| **Status** | `pending` |
+| **Agent** | *unassigned* |
+| **Started** | - |
+| **Completed** | - |
+| **Parallelizable** | No |
+| **Dependencies** | Modules 7, 12, 13 |
+
+**Progress Notes**:
+- [ ] CLI integration tests: `yarn test`
+- [ ] Manual E2E test: relay server + happy kimi + QR scan
+
+**Verification Checklist**:
+- [ ] `happy kimi` starts session with Ink UI
+- [ ] QR code displays for mobile connection
+- [ ] Permission modes work (default, yolo, safe-yolo, read-only)
+- [ ] Abort (Ctrl+C) stops current task
+- [ ] MCP tools (change_title) function correctly
+
+**Challenges & Solutions**:
+<!-- Add challenges here as needed -->
+
+---
+
+### Module 15: Documentation
+
+| Field | Value |
+|-------|-------|
+| **Status** | `pending` |
+| **Agent** | *unassigned* |
+| **Started** | - |
+| **Completed** | - |
+| **Parallelizable** | Yes |
+| **Dependencies** | All modules complete |
+
+**Files Created**:
+- `happykimi-transition/README.md`
+
+**Progress Notes**:
+- [ ] Prerequisites section
+- [ ] CLI Installation steps
+- [ ] Mobile app build instructions
+- [ ] APK installation on Android
+- [ ] Usage guide
+- [ ] Troubleshooting section
+
+**Challenges & Solutions**:
+<!-- Add challenges here as needed -->
+
+---
+
+## 🔗 Module Dependencies
+
+```
+Module 0 (Setup)
+     │
+     ├──► Module 1 (Types/Constants) ──┬──► Module 2 (Transport)
+     │                                  ├──► Module 3 (Utilities)
+     │                                  └──► Module 5 (UI)
+     │                                           │
+     └──► Module 9 (App Types) ───────────────────┤
+                    │                              │
+                    ▼                              ▼
+              Module 10 (Agent Selector)     Module 4 (Factory)
+                    │                              │
+                    ▼                              ▼
+              Module 11 (Translations)       Module 6 (runKimi)
+                    │                              │
+                    ▼                              ▼
+              Module 12 (App Tests)          Module 7 (CLI Integration)
+                    │                              │
+                    └──────────┬───────────────────┘
+                               │
+                               ▼
+                    Module 8 (CLI Tests)
+                               │
+                               ▼
+                    Module 13 (APK Build)
+                               │
+                               ▼
+                    Module 14 (Integration Testing)
+                               │
+                               ▼
+                    Module 15 (Documentation)
+```
+
+---
+
+## 📝 Global Notes
+
+<!-- Add any cross-cutting concerns or notes that affect multiple modules here -->
+
