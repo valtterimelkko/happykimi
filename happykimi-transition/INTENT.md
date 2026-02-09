@@ -194,13 +194,12 @@ Phase 2 = The "frontend" that lets you control it
 Both needed for complete experience! 🎉
 
 
-
-### User asked
+### User asks
 
 Phase 1 - after Phase 1 has completed, would the user then in the mobile app click on 'Codex' - for example - and then, instead of Codex, they'd get Kimi Code?
 
 
-### Kimi Code explained
+### Kimi Code explains
 
 No, that's not quite right. After Phase 1 alone, the flow would be different (and slightly broken). Let me clarify:
 
@@ -253,3 +252,88 @@ Phase 1 = Backend capability (Kimi can run with Happy)
 Phase 2 = Frontend recognition (Mobile knows what Kimi is)
 Without Phase 2, the mobile app would be confused about what kind of session it's controlling. It might work technically, but the UX would be broken (wrong icons, missing settings, etc.).
 
+### User asks
+
+I use the android app. So for the Phase 2: I've heard that the easiest workflow is using React Native with Expo, which creates a scaffolded project structure that Claude Code / Kimi Code or similar agents can then edit. Would that help with the Phase 2? I'm not sure at this stage whether I'd be looking into publishing the outcome of the Phase 2 at all, or whether I'd just be using it myself. What do you think?
+
+### Kimi Code explains
+
+Great news - you already have the Expo project!
+
+The Happy app is already built with React Native + Expo. You don't need to create a new scaffolded project. Here's what you actually have:
+
+What You Already Have
+/root/happykimi/packages/happy-app/
+├── package.json          # Already Expo-based ✅
+├── app.config.js         # Expo config ✅
+├── index.ts              # Entry point ✅
+├── sources/
+│   ├── app/              # React Native screens
+│   ├── components/       # UI components
+│   └── ...               # All the app code
+├── android/              # Android native files
+└── ios/                  # iOS native files
+It's already a complete Expo project! Phase 2 is about modifying the existing code, not creating a new app.
+
+What Phase 2 Actually Means for You
+The Changes Are Small
+You're only adding Kimi as a 4th agent option alongside Claude, Codex, and Gemini:
+
+// Before (3 options):
+const agents = ['claude', 'codex', 'gemini'];
+
+// After (4 options):
+const agents = ['claude', 'codex', 'gemini', 'kimi'];
+The actual code changes are ~50-100 lines across 3-4 files.
+
+Your Options for Using It
+Option A: Build APK for Personal Use (Recommended)
+Since you own the fork and just want to use it yourself:
+
+cd /root/happykimi/packages/happy-app
+
+# Build Android APK (no Play Store needed)
+eas build --platform android --profile preview
+
+# Or run directly on connected Android device
+yarn android
+Pros:
+
+✅ No publishing required
+✅ Use your custom version alongside official app
+✅ Quick iteration
+Option B: Use Development Build
+# Install expo-dev-client
+npx expo install expo-dev-client
+
+# Run development server
+yarn start
+
+# Connect with Expo Go app (limited) or dev client
+Pros:
+
+✅ Fastest for development
+✅ Hot reload
+Cons: Needs dev client installed
+Option C: Publish to Play Store (Future)
+Only if you want others to use it:
+
+Requires new app ID
+Google Play developer account ($25)
+Separate from official Happy app
+My Recommendation
+For your use case (personal + Android):
+
+Complete Phase 1 first (get happy kimi working in terminal)
+Make minimal Phase 2 changes (add Kimi to agent list)
+Build APK with EAS: eas build --platform android
+Install APK on your phone and use it!
+You don't need to publish anything. The APK works independently.
+
+Expo Does Help, But...
+You're right that Expo makes editing easier, but the Happy app already IS an Expo project. You just need to:
+
+Edit the existing TypeScript files
+Run yarn android to test
+Build APK when ready
+No scaffolding needed - it's already done! 🎉
