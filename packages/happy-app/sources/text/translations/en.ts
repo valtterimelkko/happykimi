@@ -455,6 +455,8 @@ export const en: TranslationStructure = {
             badgeSafeYolo: 'Safe YOLO',
             badgeYolo: 'YOLO',
         },
+        kimiDescription: 'Kimi Code CLI agent',
+        kimiNotDetected: 'Kimi CLI not detected on machine',
         kimiPermissionMode: {
             title: 'KIMI PERMISSION MODE',
             default: 'Default',
