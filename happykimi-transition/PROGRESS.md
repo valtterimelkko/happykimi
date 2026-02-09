@@ -51,14 +51,14 @@
 ## 📊 Overall Progress Summary
 
 ```
-Phase 1 (CLI)   : [██████    ] 6/8 modules
+Phase 1 (CLI)   : [████████  ] 8/8 modules
 Phase 2 (Mobile): [█         ] 1/7 modules
-Total           : [█████     ] 7/15 modules
+Total           : [██████    ] 9/15 modules
 ```
 
 | Phase | Modules | Completed | Status |
 |-------|---------|-----------|--------|
-| CLI Core | 0-8 | 6/9 | 🟡 In Progress |
+| CLI Core | 0-8 | 8/9 | 🟢 Nearly Complete |
 | Mobile App | 9-13 | 1/5 | 🟡 In Progress |
 | Integration | 14 | 0/1 | 🔴 Not started |
 | Documentation | 15 | 0/1 | 🔴 Not started |
@@ -283,29 +283,73 @@ None - implementation followed GeminiDisplay pattern successfully
 
 | Field | Value |
 |-------|-------|
-| **Status** | `pending` |
-| **Agent** | *unassigned* |
-| **Started** | - |
-| **Completed** | - |
+| **Status** | `completed` |
+| **Agent** | main-agent |
+| **Started** | 2026-02-09T21:28:00Z |
+| **Completed** | 2026-02-09T21:38:00Z |
 | **Parallelizable** | No |
 | **Dependencies** | Modules 1-5 |
 
 **Files Created**:
 - `packages/happy-cli/src/kimi/runKimi.ts`
+- `packages/happy-cli/src/kimi/__tests__/emitReadyIfIdle.test.ts`
+- `packages/happy-cli/src/kimi/__tests__/runKimi.integration.test.ts`
+
+**Files Modified**:
+- `packages/happy-cli/src/utils/createSessionMetadata.ts` - Added 'kimi' to BackendFlavor type
+- `packages/happy-cli/src/api/apiSession.ts` - Added 'kimi' to sendAgentMessage provider type
 
 **Progress Notes**:
-- [ ] Session setup and authentication (~1300 lines)
-- [ ] Machine ID retrieval
-- [ ] Session creation with metadata
-- [ ] Message queue with mode handling
-- [ ] Happy MCP server startup
-- [ ] Backend creation with createKimiBackend()
-- [ ] Message handler for AgentMessage types
-- [ ] Main processing loop
-- [ ] Cleanup on exit
+- [x] Session setup and authentication (~1100 lines, following runGemini.ts pattern)
+- [x] Machine ID retrieval
+- [x] Session creation with metadata (flavor: 'kimi')
+- [x] Message queue with mode handling
+- [x] Happy MCP server startup
+- [x] Backend creation with createKimiBackend()
+- [x] Message handler for AgentMessage types
+- [x] Main processing loop with conversation history
+- [x] Cleanup on exit
+- [x] Authentication check (kimi login required)
+- [x] All tests pass (335 passed)
 
 **Challenges & Solutions**:
-<!-- Add challenges here as needed -->
+
+**Challenge**: BackendFlavor type didn't include 'kimi'
+- **Solution**: Added 'kimi' to BackendFlavor union type in createSessionMetadata.ts
+- **Time Lost**: ~2 min
+
+**Challenge**: sendAgentMessage provider type didn't include 'kimi'
+- **Solution**: Added 'kimi' to provider type in apiSession.ts
+- **Time Lost**: ~2 min
+
+---
+
+### Module 7: CLI Integration (CLI)
+
+| Field | Value |
+|-------|-------|
+| **Status** | `completed` |
+| **Agent** | main-agent |
+| **Started** | 2026-02-09T21:35:00Z |
+| **Completed** | 2026-02-09T21:38:00Z |
+| **Parallelizable** | No |
+| **Dependencies** | Module 6 |
+
+**Files Modified**:
+- `packages/happy-cli/src/index.ts` - Added kimi subcommand handling
+
+**Progress Notes**:
+- [x] Add kimi subcommand block in index.ts (after gemini section)
+- [x] Handle `happy kimi model set <model>` command
+- [x] Handle `happy kimi model get` command
+- [x] Handle `happy kimi model` help command
+- [x] Handle main `happy kimi` command with daemon auto-start
+- [x] Update help text to include kimi command
+- [x] Build passes successfully
+- [x] All 335 tests pass
+
+**Challenges & Solutions**:
+None - integration followed existing gemini/codex patterns successfully
 
 ---
 

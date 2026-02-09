@@ -325,6 +325,99 @@ import { execFileSync } from 'node:child_process'
       process.exit(1)
     }
     return;
+  } else if (subcommand === 'kimi') {
+    // Handle kimi subcommands
+    const kimiSubcommand = args[1];
+    
+    // Handle "happy kimi model set <model>" command
+    if (kimiSubcommand === 'model' && args[2] === 'set' && args[3]) {
+      const modelName = args[3];
+      
+      try {
+        const { saveKimiModelToConfig } = await import('@/kimi/utils/config');
+        
+        saveKimiModelToConfig(modelName);
+        console.log(`✓ Model set to: ${modelName}`);
+        console.log(`  Config saved to: ~/.kimi/config.toml`);
+        console.log(`  This model will be used in future sessions.`);
+        process.exit(0);
+      } catch (error) {
+        console.error('Failed to save model configuration:', error);
+        process.exit(1);
+      }
+    }
+    
+    // Handle "happy kimi model get" command
+    if (kimiSubcommand === 'model' && args[2] === 'get') {
+      try {
+        const { readKimiLocalConfig } = await import('@/kimi/utils/config');
+        const localConfig = readKimiLocalConfig();
+        
+        if (localConfig.model) {
+          console.log(`Current model: ${localConfig.model} (from ~/.kimi/config.toml)`);
+        } else if (process.env.KIMI_MODEL) {
+          console.log(`Current model: ${process.env.KIMI_MODEL} (from KIMI_MODEL env var)`);
+        } else {
+          console.log('Current model: kimi-latest (default)');
+        }
+        process.exit(0);
+      } catch (error) {
+        console.error('Failed to read model configuration:', error);
+        process.exit(1);
+      }
+    }
+    
+    // Handle "happy kimi model" (no subcommand) - show help
+    if (kimiSubcommand === 'model' && !args[2]) {
+      console.log('Usage: happy kimi model <command>');
+      console.log('');
+      console.log('Commands:');
+      console.log('  set <model-name>   Set the model to use');
+      console.log('  get                Show the current model');
+      console.log('');
+      console.log('Available models: kimi-latest, kimi-k2, kimi-k2-think');
+      console.log('Models are sourced from: explicit > env var (KIMI_MODEL) > local config > default');
+      process.exit(0);
+    }
+    
+    // Handle main kimi command (ACP-based agent)
+    try {
+      const { runKimi } = await import('@/kimi/runKimi');
+      
+      // Parse startedBy argument
+      let startedBy: 'daemon' | 'terminal' | undefined = undefined;
+      for (let i = 1; i < args.length; i++) {
+        if (args[i] === '--started-by') {
+          startedBy = args[++i] as 'daemon' | 'terminal';
+        }
+      }
+      
+      const {
+        credentials
+      } = await authAndSetupMachineIfNeeded();
+
+      // Auto-start daemon for kimi (same as gemini/claude)
+      logger.debug('Ensuring Happy background service is running & matches our version...');
+      if (!(await isDaemonRunningCurrentlyInstalledHappyVersion())) {
+        logger.debug('Starting Happy background service...');
+        const daemonProcess = spawnHappyCLI(['daemon', 'start-sync'], {
+          detached: true,
+          stdio: 'ignore',
+          env: process.env
+        });
+        daemonProcess.unref();
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      await runKimi({credentials, startedBy});
+    } catch (error) {
+      console.error(chalk.red('Error:'), error instanceof Error ? error.message : 'Unknown error')
+      if (process.env.DEBUG) {
+        console.error(error)
+      }
+      process.exit(1)
+    }
+    return;
   } else if (subcommand === 'logout') {
     // Keep for backward compatibility - redirect to auth logout
     console.log(chalk.yellow('Note: "happy logout" is deprecated. Use "happy auth logout" instead.\n'));
@@ -559,6 +652,7 @@ ${chalk.bold('Usage:')}
   happy auth              Manage authentication
   happy codex             Start Codex mode
   happy gemini            Start Gemini mode (ACP)
+  happy kimi              Start Kimi mode (ACP)
   happy connect           Connect AI vendor API keys
   happy notify            Send push notification
   happy daemon            Manage background service that allows
