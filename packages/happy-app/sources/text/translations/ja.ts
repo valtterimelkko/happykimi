@@ -436,6 +436,7 @@ export const ja: TranslationStructure = {
             claude: 'Claude',
             codex: 'Codex',
             gemini: 'Gemini',
+            kimi: 'Kimi',
         },
         model: {
             title: 'モデル',
@@ -469,6 +470,16 @@ export const ja: TranslationStructure = {
             yolo: 'YOLO',
             badgeReadOnly: '読み取り専用',
             badgeSafeYolo: '安全YOLO',
+            badgeYolo: 'YOLO',
+        },
+        kimiPermissionMode: {
+            title: 'KIMI PERMISSION MODE',
+            default: 'Default',
+            readOnly: 'Read Only',
+            safeYolo: 'Safe YOLO',
+            yolo: 'YOLO',
+            badgeReadOnly: 'Read Only',
+            badgeSafeYolo: 'Safe YOLO',
             badgeYolo: 'YOLO',
         },
         context: {

@@ -59,7 +59,7 @@ const useProfileMap = (profiles: AIBackendProfile[]) => {
 
 // Environment variable transformation helper
 // Returns ALL profile environment variables - daemon will use them as-is
-const transformProfileToEnvironmentVars = (profile: AIBackendProfile, agentType: 'claude' | 'codex' | 'gemini' = 'claude') => {
+const transformProfileToEnvironmentVars = (profile: AIBackendProfile, agentType: 'claude' | 'codex' | 'gemini' | 'kimi' = 'claude') => {
     // getProfileEnvironmentVariables already returns ALL env vars from profile
     // including custom environmentVariables array and provider-specific configs
     return getProfileEnvironmentVariables(profile);
@@ -310,7 +310,7 @@ function NewSessionWizard() {
         }
         return 'anthropic'; // Default to Anthropic
     });
-    const [agentType, setAgentType] = React.useState<'claude' | 'codex' | 'gemini'>(() => {
+    const [agentType, setAgentType] = React.useState<'claude' | 'codex' | 'gemini' | 'kimi'>(() => {
         // Check if agent type was provided in temp data
         if (tempSessionData?.agentType) {
             // Only allow gemini if experiments are enabled
@@ -329,13 +329,14 @@ function NewSessionWizard() {
         return 'claude';
     });
 
-    // Agent cycling handler (for cycling through claude -> codex -> gemini)
+    // Agent cycling handler (for cycling through claude -> codex -> gemini -> kimi)
     // Note: Does NOT persist immediately - persistence is handled by useEffect below
     const handleAgentClick = React.useCallback(() => {
         setAgentType(prev => {
-            // Cycle: claude -> codex -> gemini (if experiments) -> claude
+            // Cycle: claude -> codex -> gemini (if experiments) -> kimi (if experiments) -> claude
             if (prev === 'claude') return 'codex';
             if (prev === 'codex') return experimentsEnabled ? 'gemini' : 'claude';
+            if (prev === 'gemini') return experimentsEnabled ? 'kimi' : 'claude';
             return 'claude';
         });
     }, [experimentsEnabled]);
@@ -350,10 +351,10 @@ function NewSessionWizard() {
     const [permissionMode, setPermissionMode] = React.useState<PermissionMode>(() => {
         // Initialize with last used permission mode if valid, otherwise default to 'default'
         const validClaudeModes: PermissionMode[] = ['default', 'acceptEdits', 'plan', 'bypassPermissions'];
-        const validCodexGeminiModes: PermissionMode[] = ['default', 'read-only', 'safe-yolo', 'yolo'];
+        const validCodexGeminiKimiModes: PermissionMode[] = ['default', 'read-only', 'safe-yolo', 'yolo'];
 
         if (lastUsedPermissionMode) {
-            if ((agentType === 'codex' || agentType === 'gemini') && validCodexGeminiModes.includes(lastUsedPermissionMode as PermissionMode)) {
+            if ((agentType === 'codex' || agentType === 'gemini' || agentType === 'kimi') && validCodexGeminiKimiModes.includes(lastUsedPermissionMode as PermissionMode)) {
                 return lastUsedPermissionMode as PermissionMode;
             } else if (agentType === 'claude' && validClaudeModes.includes(lastUsedPermissionMode as PermissionMode)) {
                 return lastUsedPermissionMode as PermissionMode;
@@ -369,8 +370,10 @@ function NewSessionWizard() {
     const [modelMode, setModelMode] = React.useState<ModelMode>(() => {
         const validClaudeModes: ModelMode[] = ['default', 'adaptiveUsage', 'sonnet', 'opus'];
         const validCodexModes: ModelMode[] = ['gpt-5-codex-high', 'gpt-5-codex-medium', 'gpt-5-codex-low', 'gpt-5-minimal', 'gpt-5-low', 'gpt-5-medium', 'gpt-5-high'];
-        // Note: 'default' is NOT valid for Gemini - we want explicit model selection
+        // Note: 'default' is NOT valid for Gemini or Kimi - we want explicit model selection
         const validGeminiModes: ModelMode[] = ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+        // Kimi uses the same modes as Gemini for now
+        const validKimiModes: ModelMode[] = ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'];
 
         if (lastUsedModelMode) {
             if (agentType === 'codex' && validCodexModes.includes(lastUsedModelMode as ModelMode)) {
@@ -379,9 +382,11 @@ function NewSessionWizard() {
                 return lastUsedModelMode as ModelMode;
             } else if (agentType === 'gemini' && validGeminiModes.includes(lastUsedModelMode as ModelMode)) {
                 return lastUsedModelMode as ModelMode;
+            } else if (agentType === 'kimi' && validKimiModes.includes(lastUsedModelMode as ModelMode)) {
+                return lastUsedModelMode as ModelMode;
             }
         }
-        return agentType === 'codex' ? 'gpt-5-codex-high' : agentType === 'gemini' ? 'gemini-2.5-pro' : 'default';
+        return agentType === 'codex' ? 'gpt-5-codex-high' : agentType === 'gemini' ? 'gemini-2.5-pro' : agentType === 'kimi' ? 'gemini-2.5-pro' : 'default';
     });
 
     // Session details state
@@ -467,16 +472,17 @@ function NewSessionWizard() {
 
         if (agentAvailable === false) {
             // Current agent not available - find first available
-            const availableAgent: 'claude' | 'codex' | 'gemini' =
+            const availableAgent: 'claude' | 'codex' | 'gemini' | 'kimi' =
                 cliAvailability.claude === true ? 'claude' :
                 cliAvailability.codex === true ? 'codex' :
                 (cliAvailability.gemini === true && experimentsEnabled) ? 'gemini' :
+                (cliAvailability.kimi === true && experimentsEnabled) ? 'kimi' :
                 'claude'; // Fallback to claude (will fail at spawn with clear error)
 
             console.warn(`[AgentSelection] ${agentType} not available, switching to ${availableAgent}`);
             setAgentType(availableAgent);
         }
-    }, [cliAvailability.timestamp, cliAvailability.claude, cliAvailability.codex, cliAvailability.gemini, agentType, experimentsEnabled]);
+    }, [cliAvailability.timestamp, cliAvailability.claude, cliAvailability.codex, cliAvailability.gemini, cliAvailability.kimi, agentType, experimentsEnabled]);
 
     // Extract all ${VAR} references from profiles to query daemon environment
     const envVarRefs = React.useMemo(() => {
@@ -492,10 +498,10 @@ function NewSessionWizard() {
     const { variables: daemonEnv } = useEnvironmentVariables(selectedMachineId, envVarRefs);
 
     // Temporary banner dismissal (X button) - resets when component unmounts or machine changes
-    const [hiddenBanners, setHiddenBanners] = React.useState<{ claude: boolean; codex: boolean; gemini: boolean }>({ claude: false, codex: false, gemini: false });
+    const [hiddenBanners, setHiddenBanners] = React.useState<{ claude: boolean; codex: boolean; gemini: boolean; kimi: boolean }>({ claude: false, codex: false, gemini: false, kimi: false });
 
     // Helper to check if CLI warning has been dismissed (checks both global and per-machine)
-    const isWarningDismissed = React.useCallback((cli: 'claude' | 'codex' | 'gemini'): boolean => {
+    const isWarningDismissed = React.useCallback((cli: 'claude' | 'codex' | 'gemini' | 'kimi'): boolean => {
         // Check global dismissal first
         if (dismissedCLIWarnings.global?.[cli] === true) return true;
         // Check per-machine dismissal
@@ -504,7 +510,7 @@ function NewSessionWizard() {
     }, [selectedMachineId, dismissedCLIWarnings]);
 
     // Unified dismiss handler for all three button types (easy to use correctly, hard to use incorrectly)
-    const handleCLIBannerDismiss = React.useCallback((cli: 'claude' | 'codex' | 'gemini', type: 'temporary' | 'machine' | 'global') => {
+    const handleCLIBannerDismiss = React.useCallback((cli: 'claude' | 'codex' | 'gemini' | 'kimi', type: 'temporary' | 'machine' | 'global') => {
         if (type === 'temporary') {
             // X button: Hide for current session only (not persisted)
             setHiddenBanners(prev => ({ ...prev, [cli]: true }));
@@ -556,7 +562,7 @@ function NewSessionWizard() {
         const supportedCLIs = (Object.entries(profile.compatibility) as [string, boolean][])
             .filter(([, supported]) => supported)
             .map(([agent]) => agent);
-        const requiredCLI = supportedCLIs.length === 1 ? supportedCLIs[0] as 'claude' | 'codex' | 'gemini' : null;
+        const requiredCLI = supportedCLIs.length === 1 ? supportedCLIs[0] as 'claude' | 'codex' | 'gemini' | 'kimi' : null;
 
         if (requiredCLI && cliAvailability[requiredCLI] === false) {
             return {
@@ -565,7 +571,7 @@ function NewSessionWizard() {
             };
         }
 
-        // Optimistic: If detection hasn't completed (null) or profile supports both, assume available
+        // Optimistic: If detection hasn't completed (null) or profile supports multiple, assume available
         return { available: true };
     }, [agentType, cliAvailability]);
 
@@ -681,10 +687,10 @@ function NewSessionWizard() {
                 .map(([agent]) => agent);
 
             if (supportedCLIs.length === 1) {
-                const requiredAgent = supportedCLIs[0] as 'claude' | 'codex' | 'gemini';
+                const requiredAgent = supportedCLIs[0] as 'claude' | 'codex' | 'gemini' | 'kimi';
                 // Check if this agent is available and allowed
                 const isAvailable = cliAvailability[requiredAgent] !== false;
-                const isAllowed = requiredAgent !== 'gemini' || experimentsEnabled;
+                const isAllowed = (requiredAgent !== 'gemini' && requiredAgent !== 'kimi') || experimentsEnabled;
 
                 if (isAvailable && isAllowed) {
                     setAgentType(requiredAgent);
@@ -707,10 +713,10 @@ function NewSessionWizard() {
     // Reset permission mode to 'default' when agent type changes and current mode is invalid for new agent
     React.useEffect(() => {
         const validClaudeModes: PermissionMode[] = ['default', 'acceptEdits', 'plan', 'bypassPermissions'];
-        const validCodexGeminiModes: PermissionMode[] = ['default', 'read-only', 'safe-yolo', 'yolo'];
+        const validCodexGeminiKimiModes: PermissionMode[] = ['default', 'read-only', 'safe-yolo', 'yolo'];
 
-        const isValidForCurrentAgent = (agentType === 'codex' || agentType === 'gemini')
-            ? validCodexGeminiModes.includes(permissionMode)
+        const isValidForCurrentAgent = (agentType === 'codex' || agentType === 'gemini' || agentType === 'kimi')
+            ? validCodexGeminiKimiModes.includes(permissionMode)
             : validClaudeModes.includes(permissionMode);
 
         if (!isValidForCurrentAgent) {
@@ -722,14 +728,18 @@ function NewSessionWizard() {
     React.useEffect(() => {
         const validClaudeModes: ModelMode[] = ['default', 'adaptiveUsage', 'sonnet', 'opus'];
         const validCodexModes: ModelMode[] = ['gpt-5-codex-high', 'gpt-5-codex-medium', 'gpt-5-codex-low', 'gpt-5-minimal', 'gpt-5-low', 'gpt-5-medium', 'gpt-5-high'];
-        // Note: 'default' is NOT valid for Gemini - we want explicit model selection
+        // Note: 'default' is NOT valid for Gemini or Kimi - we want explicit model selection
         const validGeminiModes: ModelMode[] = ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+        // Kimi uses the same modes as Gemini for now
+        const validKimiModes: ModelMode[] = ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'];
 
         let isValidForCurrentAgent = false;
         if (agentType === 'codex') {
             isValidForCurrentAgent = validCodexModes.includes(modelMode);
         } else if (agentType === 'gemini') {
             isValidForCurrentAgent = validGeminiModes.includes(modelMode);
+        } else if (agentType === 'kimi') {
+            isValidForCurrentAgent = validKimiModes.includes(modelMode);
         } else {
             isValidForCurrentAgent = validClaudeModes.includes(modelMode);
         }
@@ -739,6 +749,8 @@ function NewSessionWizard() {
             if (agentType === 'codex') {
                 setModelMode('gpt-5-codex-high');
             } else if (agentType === 'gemini') {
+                setModelMode('gemini-2.5-pro');
+            } else if (agentType === 'kimi') {
                 setModelMode('gemini-2.5-pro');
             } else {
                 setModelMode('default');
@@ -1114,6 +1126,7 @@ function NewSessionWizard() {
                 claude: cliAvailability.claude,
                 codex: cliAvailability.codex,
                 ...(experimentsEnabled && { gemini: cliAvailability.gemini }),
+                ...(experimentsEnabled && { kimi: cliAvailability.kimi }),
             } : undefined,
         };
     }, [selectedMachine, selectedMachineId, cliAvailability, experimentsEnabled, theme]);
@@ -1272,6 +1285,16 @@ function NewSessionWizard() {
                                                 </Text>
                                                 <Text style={{ fontSize: 11, color: cliAvailability.gemini ? theme.colors.success : theme.colors.textDestructive, ...Typography.default() }}>
                                                     gemini
+                                                </Text>
+                                            </View>
+                                        )}
+                                        {experimentsEnabled && (
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                                <Text style={{ fontSize: 11, color: cliAvailability.kimi ? theme.colors.success : theme.colors.textDestructive, ...Typography.default() }}>
+                                                    {cliAvailability.kimi ? '✓' : '✗'}
+                                                </Text>
+                                                <Text style={{ fontSize: 11, color: cliAvailability.kimi ? theme.colors.success : theme.colors.textDestructive, ...Typography.default() }}>
+                                                    kimi
                                                 </Text>
                                             </View>
                                         )}
@@ -1500,6 +1523,78 @@ function NewSessionWizard() {
                                         }}>
                                             <Text style={{ fontSize: 11, color: theme.colors.textLink, ...Typography.default() }}>
                                                 View Gemini Docs →
+                                            </Text>
+                                        </Pressable>
+                                    </View>
+                                </View>
+                            )}
+
+                            {selectedMachineId && cliAvailability.kimi === false && experimentsEnabled && !isWarningDismissed('kimi') && !hiddenBanners.kimi && (
+                                <View style={{
+                                    backgroundColor: theme.colors.box.warning.background,
+                                    borderRadius: 10,
+                                    padding: 12,
+                                    marginBottom: 12,
+                                    borderWidth: 1,
+                                    borderColor: theme.colors.box.warning.border,
+                                }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
+                                        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginRight: 16 }}>
+                                            <Ionicons name="warning" size={16} color={theme.colors.warning} />
+                                            <Text style={{ fontSize: 13, fontWeight: '600', color: theme.colors.text, ...Typography.default('semiBold') }}>
+                                                Kimi CLI Not Detected
+                                            </Text>
+                                            <View style={{ flex: 1, minWidth: 20 }} />
+                                            <Text style={{ fontSize: 10, color: theme.colors.textSecondary, ...Typography.default() }}>
+                                                Don't show this popup for
+                                            </Text>
+                                            <Pressable
+                                                onPress={() => handleCLIBannerDismiss('kimi', 'machine')}
+                                                style={{
+                                                    borderRadius: 4,
+                                                    borderWidth: 1,
+                                                    borderColor: theme.colors.textSecondary,
+                                                    paddingHorizontal: 8,
+                                                    paddingVertical: 3,
+                                                }}
+                                            >
+                                                <Text style={{ fontSize: 10, color: theme.colors.textSecondary, ...Typography.default() }}>
+                                                    this machine
+                                                </Text>
+                                            </Pressable>
+                                            <Pressable
+                                                onPress={() => handleCLIBannerDismiss('kimi', 'global')}
+                                                style={{
+                                                    borderRadius: 4,
+                                                    borderWidth: 1,
+                                                    borderColor: theme.colors.textSecondary,
+                                                    paddingHorizontal: 8,
+                                                    paddingVertical: 3,
+                                                }}
+                                            >
+                                                <Text style={{ fontSize: 10, color: theme.colors.textSecondary, ...Typography.default() }}>
+                                                    any machine
+                                                </Text>
+                                            </Pressable>
+                                        </View>
+                                        <Pressable
+                                            onPress={() => handleCLIBannerDismiss('kimi', 'temporary')}
+                                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                        >
+                                            <Ionicons name="close" size={18} color={theme.colors.textSecondary} />
+                                        </Pressable>
+                                    </View>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 4 }}>
+                                        <Text style={{ fontSize: 11, color: theme.colors.textSecondary, ...Typography.default() }}>
+                                            Install: npm install -g kimi-cli •
+                                        </Text>
+                                        <Pressable onPress={() => {
+                                            if (Platform.OS === 'web') {
+                                                window.open('https://github.com/moonshotai/Kimi-Cookbook', '_blank');
+                                            }
+                                        }}>
+                                            <Text style={{ fontSize: 11, color: theme.colors.textLink, ...Typography.default() }}>
+                                                View Kimi Docs →
                                             </Text>
                                         </Pressable>
                                     </View>
@@ -1842,7 +1937,7 @@ function NewSessionWizard() {
                                 <Text style={styles.sectionHeader}>4. Permission Mode</Text>
                             </View>
                             <ItemGroup title="">
-                                {(agentType === 'codex'
+                                {(agentType === 'codex' || agentType === 'gemini' || agentType === 'kimi'
                                     ? [
                                         { value: 'default' as PermissionMode, label: 'Default', description: 'Ask for permissions', icon: 'shield-outline' },
                                         { value: 'read-only' as PermissionMode, label: 'Read Only', description: 'Read-only mode', icon: 'eye-outline' },

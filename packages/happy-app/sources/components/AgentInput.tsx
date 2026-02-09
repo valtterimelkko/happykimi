@@ -49,6 +49,7 @@ interface AgentInputProps {
             claude: boolean | null;
             codex: boolean | null;
             gemini?: boolean | null;
+            kimi?: boolean | null;
         };
     };
     autocompletePrefixes: string[];
@@ -62,7 +63,7 @@ interface AgentInputProps {
     };
     alwaysShowContextSize?: boolean;
     onFileViewerPress?: () => void;
-    agentType?: 'claude' | 'codex' | 'gemini';
+    agentType?: 'claude' | 'codex' | 'gemini' | 'kimi';
     onAgentClick?: () => void;
     machineName?: string | null;
     onMachineClick?: () => void;
@@ -299,10 +300,11 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
 
     const hasText = props.value.trim().length > 0;
 
-    // Check if this is a Codex or Gemini session
+    // Check if this is a Codex, Gemini, or Kimi session
     // Use metadata.flavor for existing sessions, agentType prop for new sessions
     const isCodex = props.metadata?.flavor === 'codex' || props.agentType === 'codex';
     const isGemini = props.metadata?.flavor === 'gemini' || props.agentType === 'gemini';
+    const isKimi = props.metadata?.flavor === 'kimi' || props.agentType === 'kimi';
 
     // Profile data
     const profiles = useSetting('profiles');
@@ -474,9 +476,9 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
             }
             // Handle Shift+Tab for permission mode switching
             if (event.key === 'Tab' && event.shiftKey && props.onPermissionModeChange) {
-                const modeOrder: PermissionMode[] = isCodex
+                const modeOrder: PermissionMode[] = (isCodex || isGemini || isKimi)
                     ? ['default', 'read-only', 'safe-yolo', 'yolo']
-                    : ['default', 'acceptEdits', 'plan', 'bypassPermissions']; // Claude and Gemini share same modes
+                    : ['default', 'acceptEdits', 'plan', 'bypassPermissions']; // Claude uses different modes
                 const currentIndex = modeOrder.indexOf(props.permissionMode || 'default');
                 const nextIndex = (currentIndex + 1) % modeOrder.length;
                 props.onPermissionModeChange(modeOrder[nextIndex]);
@@ -532,9 +534,9 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                 {/* Permission Mode Section */}
                                 <View style={styles.overlaySection}>
                                     <Text style={styles.overlaySectionTitle}>
-                                        {isCodex ? t('agentInput.codexPermissionMode.title') : isGemini ? t('agentInput.geminiPermissionMode.title') : t('agentInput.permissionMode.title')}
+                                        {isCodex ? t('agentInput.codexPermissionMode.title') : isGemini ? t('agentInput.geminiPermissionMode.title') : isKimi ? t('agentInput.kimiPermissionMode.title') : t('agentInput.permissionMode.title')}
                                     </Text>
-                                    {((isCodex || isGemini)
+                                    {((isCodex || isGemini || isKimi)
                                         ? (['default', 'read-only', 'safe-yolo', 'yolo'] as const)
                                         : (['default', 'acceptEdits', 'plan', 'bypassPermissions'] as const)
                                     ).map((mode) => {
@@ -548,6 +550,11 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                             'read-only': { label: t('agentInput.geminiPermissionMode.readOnly') },
                                             'safe-yolo': { label: t('agentInput.geminiPermissionMode.safeYolo') },
                                             'yolo': { label: t('agentInput.geminiPermissionMode.yolo') },
+                                        } : isKimi ? {
+                                            'default': { label: t('agentInput.kimiPermissionMode.default') },
+                                            'read-only': { label: t('agentInput.kimiPermissionMode.readOnly') },
+                                            'safe-yolo': { label: t('agentInput.kimiPermissionMode.safeYolo') },
+                                            'yolo': { label: t('agentInput.kimiPermissionMode.yolo') },
                                         } : {
                                             default: { label: t('agentInput.permissionMode.default') },
                                             acceptEdits: { label: t('agentInput.permissionMode.acceptEdits') },
@@ -620,8 +627,8 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                     }}>
                                         {t('agentInput.model.title')}
                                     </Text>
-                                    {isGemini ? (
-                                        // Gemini model selector
+                                    {isGemini || isKimi ? (
+                                        // Gemini/Kimi model selector
                                         (['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'] as const).map((model) => {
                                             const modelConfig = {
                                                 'gemini-2.5-pro': { label: 'Gemini 2.5 Pro', description: 'Most capable' },
@@ -793,6 +800,28 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                                     </Text>
                                                 </View>
                                             )}
+                                            {props.connectionStatus.cliStatus.kimi !== undefined && (
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                                    <Text style={{
+                                                        fontSize: 11,
+                                                        color: props.connectionStatus.cliStatus.kimi
+                                                            ? theme.colors.success
+                                                            : theme.colors.textDestructive,
+                                                        ...Typography.default()
+                                                    }}>
+                                                        {props.connectionStatus.cliStatus.kimi ? '✓' : '✗'}
+                                                    </Text>
+                                                    <Text style={{
+                                                        fontSize: 11,
+                                                        color: props.connectionStatus.cliStatus.kimi
+                                                            ? theme.colors.success
+                                                            : theme.colors.textDestructive,
+                                                        ...Typography.default()
+                                                    }}>
+                                                        kimi
+                                                    </Text>
+                                                </View>
+                                            )}
                                         </>
                                     )}
                                 </>
@@ -835,6 +864,11 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                             props.permissionMode === 'read-only' ? t('agentInput.geminiPermissionMode.badgeReadOnly') :
                                                 props.permissionMode === 'safe-yolo' ? t('agentInput.geminiPermissionMode.badgeSafeYolo') :
                                                     props.permissionMode === 'yolo' ? t('agentInput.geminiPermissionMode.badgeYolo') : ''
+                                    ) : isKimi ? (
+                                        props.permissionMode === 'default' ? t('agentInput.kimiPermissionMode.default') :
+                                            props.permissionMode === 'read-only' ? t('agentInput.kimiPermissionMode.badgeReadOnly') :
+                                                props.permissionMode === 'safe-yolo' ? t('agentInput.kimiPermissionMode.badgeSafeYolo') :
+                                                    props.permissionMode === 'yolo' ? t('agentInput.kimiPermissionMode.badgeYolo') : ''
                                     ) : (
                                         props.permissionMode === 'default' ? t('agentInput.permissionMode.default') :
                                             props.permissionMode === 'acceptEdits' ? t('agentInput.permissionMode.badgeAcceptAllEdits') :
@@ -1043,7 +1077,7 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                             fontWeight: '600',
                                             ...Typography.default('semiBold'),
                                         }}>
-                                            {props.agentType === 'claude' ? t('agentInput.agent.claude') : props.agentType === 'codex' ? t('agentInput.agent.codex') : t('agentInput.agent.gemini')}
+                                            {props.agentType === 'claude' ? t('agentInput.agent.claude') : props.agentType === 'codex' ? t('agentInput.agent.codex') : props.agentType === 'gemini' ? t('agentInput.agent.gemini') : t('agentInput.agent.kimi')}
                                         </Text>
                                     </Pressable>
                                 )}
