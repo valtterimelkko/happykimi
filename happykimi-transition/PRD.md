@@ -455,11 +455,13 @@ kimiNotDetected: 'Kimi CLI not detected on machine',
 **Parallelizable**: No
 **Dependencies**: Modules 9-12
 **Skills Needed**: None
+**Build Method**: **EAS Build (Expo Cloud)** - Recommended over local builds
 
 #### Prerequisites
-- Android SDK installed
-- ANDROID_HOME environment variable set
-- Java JDK 17+ installed
+- Expo account at https://expo.dev
+- EAS CLI installed: `npm install -g eas-cli`
+- EXPO_TOKEN environment variable set (optional, for CI/automation)
+- *(Local SDK only needed if building locally with gradlew)*
 
 #### Tasks
 
@@ -469,27 +471,51 @@ cd /root/happykimi/packages/happy-app
 yarn prebuild
 ```
 
-2. **Build Debug APK** (for development testing):
+2. **Configure Expo project** (one-time setup):
 ```bash
-cd /root/happykimi/packages/happy-app
-yarn android:dev
-# Or for production variant:
-yarn android:production
+EXPO_TOKEN="your-expo-token" eas project:init --force
+# This creates the Expo project and updates app.config.js with projectId
 ```
 
-3. **Build Release APK** (for installation):
+3. **Build with EAS Build** (recommended - cloud build, no local disk constraints):
+
+**For preview/development builds**:
 ```bash
+EXPO_TOKEN="your-expo-token" eas build --platform android --profile preview --wait
+```
+
+**For production release builds**:
+```bash
+EXPO_TOKEN="your-expo-token" eas build --platform android --profile production --wait
+```
+
+4. **Download and install APK**:
+```bash
+# EAS will output download link, or get from web dashboard
+# For testing on connected device:
+adb install <downloaded-apk-path>
+```
+
+#### Local Build Alternative (if EAS not available)
+
+If you prefer local builds with gradlew instead of EAS:
+
+```bash
+# Install Android SDK manually
 cd /root/happykimi/packages/happy-app/android
 ./gradlew assembleRelease
 # APK will be at: android/app/build/outputs/apk/release/app-release.apk
 ```
 
-4. **Install on connected device**:
-```bash
-adb install android/app/build/outputs/apk/release/app-release.apk
-```
+**⚠️ Note**: Local builds require significant disk space (~20GB) for native C++ compilation. EAS Build is preferred.
 
-**Note**: Local builds using `expo run:android` instead of EAS (no Expo account required).
+#### Why EAS Build?
+- ✅ No local disk space constraints
+- ✅ Faster parallel compilation on Expo servers
+- ✅ Free tier: ~30 builds/month
+- ✅ Managed credentials (Keystore, signing keys)
+- ✅ Consistent builds across environments
+- ✅ Historical build management via Expo dashboard
 
 ---
 

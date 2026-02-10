@@ -593,27 +593,58 @@ None - all changes followed existing patterns successfully
 | **Parallelizable** | No |
 | **Dependencies** | Modules 9-12 |
 
+**Build Strategy**: Using **EAS Build (Expo cloud)** instead of local gradlew to avoid disk space constraints
+
 **Prerequisites**:
-- Android SDK installed ❌ NOT INSTALLED
-- ANDROID_HOME environment variable set ❌ NOT SET
-- Java JDK 17+ installed ✅ VERIFIED (openjdk 17.0.18)
+- Android SDK installed ✅ (cmdline-tools 11.0 + platforms;android-35 + build-tools;35.0.0 + build-tools;36.0.0)
+- ANDROID_HOME environment variable set ✅ (~/Android/sdk)
+- Java JDK 17+ installed ✅ (openjdk 17.0.18)
+- EAS CLI installed ✅ (eas-cli/16.32.0)
+- Expo account & token ✅ (valtterimelkko, EXPO_TOKEN set)
 
 **Progress Notes**:
 - [x] Run `yarn prebuild` to generate android/ folder (SUCCESS - 6.11s)
-- [ ] Build debug APK with `yarn android:dev` (BLOCKED - Android SDK missing)
-- [ ] Build release APK with gradlew (BLOCKED - Android SDK missing)
-- [ ] Install on connected device via adb (BLOCKED - Android SDK missing)
+- [x] Install Android SDK commandline tools (SUCCESS)
+- [x] Install build-tools 35.0.0, 36.0.0, platforms;android-35, platform-tools
+- [x] Cleaned gradle cache (~5.6G freed)
+- [x] Install EAS CLI globally
+- [x] Create Expo project (@valtterimelkko/happy)
+- [x] Update app.config.js with new projectId (c2b402d0-7c37-44ce-acb4-33076a5c7f1d)
+- [x] Update owner from "bulkacorp" to "valtterimelkko"
+- [x] Update eas.json (removed invalid "base" field)
+- [ ] Generate Android Keystore via EAS (BLOCKED - awaiting manual credential setup)
+- [ ] Build preview APK with EAS Build
+- [ ] Build production APK with EAS Build
+
+**Files Modified**:
+- `packages/happy-app/app.config.js` - Updated owner, projectId, updates.url
+- `packages/happy-app/eas.json` - Removed invalid "base" field
 
 **Challenges & Solutions**:
 
-**Challenge**: Android SDK not installed and ANDROID_HOME not set
-- **Context**: Attempted `yarn android:dev` but failed with error: "Failed to resolve the Android SDK path. Default install location not found: /root/Android/sdk"
-- **Solution**: Android SDK is a system-level prerequisite that must be installed before APK builds. Options:
-  1. Install Android SDK locally: Download from Android Studio or use command-line tools
-  2. Use cloud build: Consider using EAS Build (Expo's cloud build service) if local Android SDK setup is not available
-  3. Skip local APK builds: APK can be built later when Android SDK is available in the environment
-- **Note**: Prebuild successfully generated the native android/ folder, which proves Modules 9-12 are properly integrated. The Kimi CLI app code is ready for Android compilation once SDK is available.
-- **Time Lost**: ~5 min investigation
+**Challenge 1**: Insufficient local disk space for Gradle native compilation
+- **Context**: Gradle build failed with "No space left on device" after downloading 5.6GB of build artifacts
+- **Solution**: Switched to EAS Build (Expo's cloud service) which handles compilation remotely
+- **Benefit**: No local disk constraints, parallel compilation, free tier includes ~30 builds/month
+- **Time Lost**: ~30 min investigation and cleanup
+
+**Challenge 2**: Project ownership and credentials mismatch
+- **Context**: app.config.js was owned by "bulkacorp" Expo account; attempted build failed with permission error
+- **Solution**:
+  1. Updated owner to personal Expo account (valtterimelkko)
+  2. Generated new projectId for valtterimelkko account
+  3. Ran `eas project:init --force` to create new Expo project
+- **Time Lost**: ~15 min
+
+**Challenge 3**: EAS CLI credential setup in non-interactive environment
+- **Context**: EAS Build requires interactive credential setup (generating Keystore) but CLI runs non-interactively
+- **Status**: BLOCKED - Awaiting either:
+  1. Manual credential setup via Expo web dashboard
+  2. Local credential generation and storage (requires interactive terminal)
+- **Note**: Can be completed tomorrow via Expo web UI or interactive terminal session
+- **Time Lost**: ~10 min attempts at stdin piping
+
+**Summary**: Module 13 is 80% complete. All prerequisites met, project configured, and ready for EAS Build. Only blocking issue is interactive credential setup which will be resolved with manual Keystore configuration.
 
 ---
 
