@@ -47,4 +47,8 @@ CLAUDE.local.md
 .dev/worktree/*
 
 # Development planning notes (keep local, don't commit)
-notes/
+notes/# EAS Build APK artifacts
+*.apk
+happy-preview.apk
+# Android signing keystore (sensitive)
+packages/happy-app/credentials/release.keystore
