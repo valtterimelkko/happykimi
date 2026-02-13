@@ -65,12 +65,48 @@ function serializeToml(obj: Record<string, string>): string {
 }
 
 /**
+ * Try to read Kimi OAuth credentials from ~/.kimi/credentials/ directory
+ * Kimi CLI stores OAuth tokens in JSON files like kimi-code.json
+ */
+function readKimiOAuthCredentials(): string | null {
+  const kimiDir = join(homedir(), '.kimi');
+  const credentialsDir = join(kimiDir, 'credentials');
+  
+  // Try common credential file names
+  const credentialFiles = ['kimi-code.json', 'kimi.json'];
+  
+  for (const filename of credentialFiles) {
+    const credPath = join(credentialsDir, filename);
+    if (existsSync(credPath)) {
+      try {
+        const content = readFileSync(credPath, 'utf-8');
+        const creds = JSON.parse(content);
+        
+        // Check for access_token in OAuth credentials
+        if (creds.access_token && typeof creds.access_token === 'string') {
+          logger.debug(`[Kimi] Found OAuth access_token in ${credPath}`);
+          return creds.access_token;
+        }
+      } catch (error) {
+        logger.debug(`[Kimi] Failed to read credentials from ${credPath}:`, error);
+      }
+    }
+  }
+  
+  return null;
+}
+
+/**
  * Try to read Kimi config (auth token and model) from local Kimi CLI config
  * Kimi CLI stores config in ~/.kimi/config.toml
+ * OAuth credentials are stored in ~/.kimi/credentials/
  */
 export function readKimiLocalConfig(): KimiLocalConfig {
   let token: string | null = null;
   let model: string | null = null;
+  
+  // First, try to read OAuth credentials from credentials directory
+  token = readKimiOAuthCredentials();
   
   // Kimi CLI stores config in ~/.kimi/config.toml
   const configPath = join(homedir(), '.kimi', 'config.toml');
@@ -80,15 +116,17 @@ export function readKimiLocalConfig(): KimiLocalConfig {
       const content = readFileSync(configPath, 'utf-8');
       const config = parseToml(content);
       
-      // Try different possible token field names
-      const foundToken = config.api_key || config.token;
-      if (foundToken && typeof foundToken === 'string') {
-        token = foundToken;
-        logger.debug(`[Kimi] Found token in ${configPath}`);
+      // If no OAuth token found, try different possible token field names in config
+      if (!token) {
+        const foundToken = config.api_key || config.token;
+        if (foundToken && typeof foundToken === 'string' && foundToken.length > 0) {
+          token = foundToken;
+          logger.debug(`[Kimi] Found token in ${configPath}`);
+        }
       }
       
       // Try to read model from config
-      const foundModel = config.model;
+      const foundModel = config.default_model || config.model;
       if (foundModel && typeof foundModel === 'string') {
         model = foundModel;
         logger.debug(`[Kimi] Found model in ${configPath}: ${model}`);
