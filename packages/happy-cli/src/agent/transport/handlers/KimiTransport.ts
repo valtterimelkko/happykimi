@@ -128,6 +128,33 @@ export class KimiTransport implements TransportHandler {
 
     return null;
   }
+
+  /**
+   * Determine the actual tool name from available context.
+   *
+   * This is called when the tool name is "other" or "Unknown tool" to try to
+   * identify the actual tool being called.
+   */
+  determineToolName(
+    toolName: string,
+    toolCallId: string,
+    _input: Record<string, unknown>,
+    _context: { toolCallCountSincePrompt: number }
+  ): string {
+    // If tool name is already known, return it
+    if (toolName !== 'other' && toolName !== 'Unknown tool') {
+      return toolName;
+    }
+
+    // Check toolCallId for known tool names (most reliable)
+    const idToolName = this.extractToolNameFromId(toolCallId);
+    if (idToolName) {
+      return idToolName;
+    }
+
+    // Return original if we can't determine
+    return toolName;
+  }
 }
 
 /**

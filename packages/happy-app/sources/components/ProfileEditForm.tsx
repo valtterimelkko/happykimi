@@ -58,10 +58,12 @@ export function ProfileEditForm({
     const [startupScript, setStartupScript] = React.useState(profile.startupBashScript || '');
     const [defaultSessionType, setDefaultSessionType] = React.useState<'simple' | 'worktree'>(profile.defaultSessionType || 'simple');
     const [defaultPermissionMode, setDefaultPermissionMode] = React.useState<PermissionMode>((profile.defaultPermissionMode as PermissionMode) || 'default');
-    const [agentType, setAgentType] = React.useState<'claude' | 'codex'>(() => {
-        if (profile.compatibility.claude && !profile.compatibility.codex) return 'claude';
-        if (profile.compatibility.codex && !profile.compatibility.claude) return 'codex';
-        return 'claude'; // Default to Claude if both or neither
+    const [agentType, setAgentType] = React.useState<'claude' | 'codex' | 'gemini' | 'kimi'>(() => {
+        if (profile.compatibility.claude && !profile.compatibility.codex && !profile.compatibility.gemini && !profile.compatibility.kimi) return 'claude';
+        if (profile.compatibility.codex && !profile.compatibility.claude && !profile.compatibility.gemini && !profile.compatibility.kimi) return 'codex';
+        if (profile.compatibility.gemini && !profile.compatibility.claude && !profile.compatibility.codex && !profile.compatibility.kimi) return 'gemini';
+        if (profile.compatibility.kimi && !profile.compatibility.claude && !profile.compatibility.codex && !profile.compatibility.gemini) return 'kimi';
+        return 'claude'; // Default to Claude if multiple or none
     });
 
     const handleSave = () => {
